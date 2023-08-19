@@ -11,36 +11,41 @@ use Bitrix\Main,
     Bitrix\Sale\Internals,
     Bitrix\Main\Localization\Loc,
     ZrStudio\CartLite\FCartTable,
-    ZrStudio\CartLite\CartElement;
+    ZrStudio\CartLite\CartElement,
+    Bitrix\Main\SystemException;
 
 Loc::loadMessages(__FILE__);
 
 class FCart 
 {
-    private int $basketId;
+    private int $cartId;
     private int $fuserId;
     private array $products;
+    private int $itemsCount = 0;
+    private int $itemsQuantity = 0;
+    private float $totalPrice = 0;
+    private array $productsIds = [];
 
-    public function __construct($basketId, $fuserId, $products)
+    public function __construct($cartId, $fuserId, $products)
     {
-        $this->basketId = $basketId;
+        $this->cartId = $cartId;
         $this->fuserId = $fuserId;
         $this->products = $products;
     }
 
-    public static function getUserBasketByFUserId($fuserId, $basketId = 0)
+    public static function getUserBasketByFUserId($fuserId, $cartId = 0)
     {
         $ID = $fuserId > 0 ? intval($fuserId): 0;
-        $basketId = intval($basketId) ?: 0;
+        $cartId = intval($cartId) ?: 0;
         if ($ID <= 0) return null;
     
         $cartUserCollection = FCartTable::getBasketByFUserId($fuserId)->fetchAll();
         if (count($cartUserCollection) > 0)
         {
             $baskets = self::_initInstanceByCartResult($cartUserCollection);
-            if ($basketId > 0)
+            if ($cartId > 0)
             {
-                return $baskets[$basketId];
+                return $baskets[$cartId];
             }
             return $baskets[array_key_first($baskets)];
         }
@@ -48,9 +53,9 @@ class FCart
         {
             $arNewBasketCollection = FCartTable::createNewBasketByFUserId($fuserId)->fetchAll();
             $baskets = self::_initInstanceByCartResult($arNewBasketCollection);
-            if ($basketId > 0)
+            if ($cartId > 0)
             {
-                return $baskets[$basketId];
+                return $baskets[$cartId];
             }
             return $baskets[array_key_first($baskets)];
         }
@@ -71,7 +76,7 @@ class FCart
         return $arBasketInstance;
     }
 
-    private function _createResult($arData, $arErrors = [])
+    private function _createResult($arData, $arErrors = []): \Bitrix\Main\Result
     {
         $res = new \Bitrix\Main\Result();
         $res->setData($arData);
@@ -85,20 +90,144 @@ class FCart
         return $res;
     }
 
-    public function add($arProducts)
+
+    /**
+     *  Update cart parameters.
+     * 
+     * @return void
+     */
+    private function _updateCartData(bool $getActualData = true)
+    {
+        if ($getActualData)
+        {
+            $this->_getActualCart();
+        }
+
+        $itemsCount = 0;
+        $itemsQuantity = 0;
+        $totalPrice = 0;
+
+        foreach($this->products as $arProduct)
+        {
+            $product = new CartElement($arProduct);
+
+            $itemsCount += 1;
+            $itemsQuantity += $product->getQuantity();
+            $totalPrice += $product->getProductTotalCost();
+        }
+
+        $this->itemsCount = $itemsCount;
+        $this->itemsQuantity = $itemsQuantity;
+        $this->totalPrice = $totalPrice;
+    }
+
+    /**
+     *  Get actual cart data. Update product files
+     * 
+     * @return bool is success get or raise error
+     * @throws \Bitrix\Main\SystemException if the user is not found
+     */
+    private function _getActualCart(): bool
+    {
+        $arCart = FCartTable::getById($this->cartId)->fetch();
+
+        if (!empty($arCart))
+        {
+            $this->products = $arCart['PRODUCTS'];
+            return true;
+        }
+
+        throw new SystemException('Cart with `'.$this->cartId.'` id not found');
+    }
+
+    /**
+     * Add product to cart. Need send third params PRODUCT_ID, QUANTITY, PRICE.
+     * PRICE - optional if you set in options get price from iblock prop product.
+     * 
+     * @param array $arProducts array with fields PRODUCT_ID, QUANTITY, PRICE
+     * 
+     * @return \Bitrix\Main\Result result have actual product basket
+     */
+    public function add($arProducts): \Bitrix\Main\Result
     {
         $product = new CartElement($arProducts);
 
         if ($product->isValid())
         {
             $products = FCartTable::addProduct(
-                $this->basketId,
+                $this->cartId,
                 $product->toArray()
             );
             $this->products = $products;
         }
 
+        $this->_updateCartData(false);
         return $this->_createResult($this->products, $product->getErrors());
     }
 
+    /**
+     * Get cart id
+     * 
+     * @return int cart id
+     */
+    public function getCartId()
+    {
+        return $this->cartId;
+    }
+
+    /**
+     * Get total cost cart products
+     * 
+     * @return float total cost products in basket
+     */
+    public function getTotalCost()
+    {
+        return $this->totalPrice;
+    }
+
+    /**
+     * Get count products in basket
+     * 
+     * @return int count products
+     */
+    public function getProductsCount()
+    {
+        return $this->itemsCount;
+    }
+
+    /**
+     * Get count quantity products in basket
+     * 
+     * @return int quantity products
+     */
+    public function getProductsQuantity()
+    {
+        return $this->itemsQuantity;
+    }
+
+    /**
+     * Get products array
+     * 
+     * @return array products
+     */
+    public function getProducts()
+    {
+        return $this->products;
+    }
+
+    public function getProductsObjects()
+    {
+        return array_map(fn($i) => new CartElement($i), $this->products);
+    }
+
+    /**
+     *  Recalculate basket
+     * 
+     * @return FCart
+     */
+    public function calc()
+    {
+        $this->_updateCartData(true);
+        return $this;
+    }
 }

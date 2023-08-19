@@ -1,6 +1,6 @@
 <?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_before.php");
 
-if(!CModule::IncludeModule("zr.cartlite") || !CModule::IncludeModule("catalog") || !CModule::IncludeModule("iblock")) {
+if(!CModule::IncludeModule("zr.cartlite") || !CModule::IncludeModule("iblock")) {
 	echo "failure";
 	return;
 }
@@ -42,7 +42,7 @@ if (isset($_REQUEST["action"]))
 
         if ($res->isSuccess())
         {
-            $arResult['STATUS'] = 'SUCCESS';
+            $arResult['STATUS'] = 'OK';
             $arResult['MESSAGE'] = 'Item with `'.$itemId.'` product id add cart';
             $arResult['ERROR'] = '';
             echo json_encode($arResult);

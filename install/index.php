@@ -21,11 +21,9 @@ class zr_cartlite extends CModule
     private string $docRoot = '';
 
     protected array $files = [
-        '/ajax/' => '/ajax/',
-        
-        '/admin/' => '/bitrix/admin/',
-        '/themes/' => '/bitrix/themes/',
-        '/js/' => '/bitrix/js/zr_stoplist/',
+        '/ajax/cartlite_action.php' => '/ajax/cartlite_action.php',
+        '/components/zr/cartlite/' => '/bitrix/components/zr/cartlite/',
+        '/components/zr/shortcart/' => '/bitrix/components/zr/shortcart/',
     ];
 
     protected array $tables = [

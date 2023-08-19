@@ -111,6 +111,7 @@ class FCartTable extends Entity\DataManager
             }
             
             $res = self::update($rowId, [
+                'TIMESTAMP_X' => new Main\Type\DateTime(),
                 'PRODUCTS' => $arProductsUpdate
             ]);
 

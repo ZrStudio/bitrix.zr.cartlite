@@ -170,9 +170,34 @@ class CartElement
         return $this->errors;
     }
 
-    public function getProductId()
+    public function getId()
     {
         return $this->productId;
+    }
+
+    public function getQuantity()
+    {
+        return $this->quantity;
+    }
+
+    /**
+     * Get product price for one item
+     * 
+     * @return float price
+     */
+    public function getPrice()
+    {
+        return $this->price;
+    }
+
+    /**
+     * Get total product cost. price * quantity
+     * 
+     * @return float total cost
+     */
+    public function getProductTotalCost()
+    {
+        return $this->price * $this->quantity;
     }
 
     public function toArray()

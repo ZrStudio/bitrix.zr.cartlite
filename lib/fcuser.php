@@ -137,7 +137,7 @@ class FCUserTable extends Entity\DataManager
             if ($ID > 0)
             {
                 $res = self::update($ID, $arFields);
-                if ($res->isSuccess())
+                if ($res->isSuccess() && $res->getData())
                 {
                     $ID = intval($res->getId());
                 }

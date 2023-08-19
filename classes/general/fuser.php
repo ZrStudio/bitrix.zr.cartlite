@@ -117,6 +117,11 @@ class FUser
 
     public function getFUserBasket()
     {
-        return FCart::getUserBasketByFUserId($this->id);
+        $basket = FCart::getUserBasketByFUserId($this->id);
+        if ($basket)
+        {
+            $basket->calc();
+        }
+        return $basket;
     }
 }
