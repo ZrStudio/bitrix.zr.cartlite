@@ -15,6 +15,7 @@
         this.ajaxUrl = '/ajax/cartlite_get_actual_cart.php';
 
         this.init();
+        this.checkShowCart();
     }
 
     window.JCZrShortCart.prototype = {
@@ -36,6 +37,27 @@
             }
 
             BX.addCustomEvent('OnBasketChange', BX.delegate(this.updateData, this));
+        },
+
+        showCart: function()
+        {
+            this.obCart.classList.remove('cart--hidden');
+        },
+
+        hiddenCart: function()
+        {
+            this.obCart.classList.add('cart--hidden');
+        },
+
+        checkShowCart: function()
+        {
+            let quantity = Number(this.obCartQuantity.innerText);
+            if (quantity >= 1)
+            {
+                this.showCart();
+                return;
+            }
+            this.hiddenCart();
         },
 
         updateData: function()
@@ -64,6 +86,8 @@
                     }
                 }
             }
+
+            this.checkShowCart();
         }
     }
 

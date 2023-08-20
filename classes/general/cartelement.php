@@ -22,29 +22,23 @@ class CartElement
 
     private int $id;
     private int $productId;
-    private string $name;
-    private bool $active;
-    private string $previewImageSrc;
-    private string $detailImageSrc;
-    private float $price;
+    private string $name = '';
+    private bool $active = false;
+    private string $detailUrl = '';
+    private string $previewImageSrc = '';
+    private string $detailImageSrc = '';
+    private float $price = 0;
     private int $quantity;
     private array $props;
     private \ZrStudio\CartLite\ProductType $type;
 
-    private int $productIblockId;
+    private int $productIblockId = 0;
     private array $errors = [];
 
     function __construct($arProductFields)
     {
         $this->productId = $arProductFields['PRODUCT_ID'];
         $this->quantity = $arProductFields['QUANTITY'];
-
-        $this->name = '';
-        $this->active = false;
-        $this->previewImageSrc = '';
-        $this->detailImageSrc = '';
-        $this->price = 0;
-        $this->productIblockId = 0;
 
         $this->_loadProductInfo($arProductFields['PRODUCT_ID']);
         $this->_setProductPrice($arProductFields['PRICE']);
@@ -80,7 +74,7 @@ class CartElement
     {
         if (!\Bitrix\Main\Loader::includeModule('iblock')) return;
         
-        $arElement = \CIBlockElement::GetByID($productId)->fetch();
+        $arElement = \CIBlockElement::GetByID($productId)->GetNext();
         if(is_array($arElement) && !empty($arElement))
         {
             $this->name = $arElement['NAME'];
@@ -102,6 +96,9 @@ class CartElement
             $this->detailImageSrc = $detailImage;
 
             $this->productIblockId = $arElement['IBLOCK_ID'];
+
+            $this->detailUrl = $arElement['DETAIL_PAGE_URL'];
+
         }
         else
         {
@@ -180,6 +177,20 @@ class CartElement
         return $this->quantity;
     }
 
+    public function getProductJs($actions = [])
+    {
+        return [
+            $this->productId,
+            $this->detailUrl,
+            $this->previewImageSrc,
+            $this->name,
+            $this->price,
+            $this->quantity,
+            $this->getProductTotalCost(),
+            $actions
+        ];
+    }
+
     /**
      * Get product price for one item
      * 
@@ -197,7 +208,7 @@ class CartElement
      */
     public function getProductTotalCost()
     {
-        return $this->price * $this->quantity;
+        return round($this->price * $this->quantity, 2);
     }
 
     public function toArray()

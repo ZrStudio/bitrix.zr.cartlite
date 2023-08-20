@@ -13,6 +13,12 @@
 
     border-radius: 5px;
     padding: 5px;
+
+    transition: right .8s ease;
+}
+
+.cart.cart--hidden {
+    right: -100%;
 }
 
 

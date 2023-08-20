@@ -145,10 +145,11 @@ class FCart
      * PRICE - optional if you set in options get price from iblock prop product.
      * 
      * @param array $arProducts array with fields PRODUCT_ID, QUANTITY, PRICE
+     * @param bool $setQunatity is need set quantity product
      * 
      * @return \Bitrix\Main\Result result have actual product basket
      */
-    public function add($arProducts): \Bitrix\Main\Result
+    public function add($arProducts, $setQunatity = false): \Bitrix\Main\Result
     {
         $product = new CartElement($arProducts);
 
@@ -156,7 +157,8 @@ class FCart
         {
             $products = FCartTable::addProduct(
                 $this->cartId,
-                $product->toArray()
+                $product->toArray(),
+                $setQunatity
             );
             $this->products = $products;
         }
@@ -164,6 +166,23 @@ class FCart
         $this->_updateCartData(false);
         return $this->_createResult($this->products, $product->getErrors());
     }
+
+    /**
+     * Delete product from cart. Need send third params PRODUCT_ID.
+     * 
+     * @param int $productId product id
+     * 
+     * @return \Bitrix\Main\Result result have actual product basket
+     */
+    public function delete($productId): \Bitrix\Main\Result
+    {
+        $products = FCartTable::deleteProduct($this->cartId, $productId);
+        $this->products = $products;
+
+        $this->_updateCartData(false);
+        return $this->_createResult($this->products);
+    }
+
 
     /**
      * Get cart id

@@ -82,10 +82,10 @@ class FCartTable extends Entity\DataManager
         return [];
     }
 
-    public static function addProduct($rowId, $arProduct)
+    public static function addProduct($rowId, $arProduct, $setQunatity = false): array
     {
         $arRow = self::getById($rowId)->fetch();
-        if (!empty($arRow))
+        if (!empty($arRow) && is_array($arRow))
         {  
             $arProductsUpdate = [];
             if (empty($arRow['PRODUCTS']))
@@ -97,11 +97,17 @@ class FCartTable extends Entity\DataManager
                 $arProductsUpdate = $arRow['PRODUCTS'];
                 if (in_array($arProduct['PRODUCT_ID'], array_keys($arRow['PRODUCTS'])))
                 {
-                    $arProductsUpdate[$arProduct['PRODUCT_ID']]['QUANTITY'] += $arProduct['QUANTITY'];
-
-                    if ($arProductsUpdate[$arProduct['PRODUCT_ID']]['QUANTITY'] <= 0)
+                    if ($setQunatity)
                     {
-                        unset($arProductsUpdate[$arProduct['PRODUCT_ID']]);
+                        $arProductsUpdate[$arProduct['PRODUCT_ID']]['QUANTITY'] = $arProduct['QUANTITY'];
+                    }
+                    else
+                    {
+                        $arProductsUpdate[$arProduct['PRODUCT_ID']]['QUANTITY'] += $arProduct['QUANTITY'];
+                        if ($arProductsUpdate[$arProduct['PRODUCT_ID']]['QUANTITY'] <= 0)
+                        {
+                            unset($arProductsUpdate[$arProduct['PRODUCT_ID']]);
+                        }
                     }
                 }
                 else
@@ -109,28 +115,47 @@ class FCartTable extends Entity\DataManager
                     $arProductsUpdate[$arProduct['PRODUCT_ID']] = $arProduct;
                 }
             }
-            
-            $res = self::update($rowId, [
-                'TIMESTAMP_X' => new Main\Type\DateTime(),
-                'PRODUCTS' => $arProductsUpdate
-            ]);
+            return self::_setProducts($rowId, $arProductsUpdate, $arRow['PRODUCTS']);
+        }
+        return [];
+    }
 
-            if ($res->isSuccess())
+    public static function deleteProduct($rowId, $productId): array
+    {
+        $arRow = self::getById($rowId)->fetch();
+        if (!empty($arRow) && is_array($arRow))
+        {  
+            $arProductsUpdate = $arRow['PRODUCTS'];
+
+            if (in_array($productId, array_keys($arProductsUpdate)))
             {
-                $arRowUpdated = self::getById($rowId)->fetch();
-                if (!empty($arRowUpdated))
-                {
-                    return $arRowUpdated['PRODUCTS'];
-                }
+                unset($arProductsUpdate[$productId]);
             }
-            else
+            
+            return self::_setProducts($rowId, $arProductsUpdate, $arRow['PRODUCTS']);
+        }
+
+        return [];
+    }
+
+    private static function _setProducts($rowId, $arProducts, $arOldProducts)
+    {
+        $res = self::update($rowId, [
+            'TIMESTAMP_X' => new Main\Type\DateTime(),
+            'PRODUCTS' => $arProducts
+        ]);
+
+        if ($res->isSuccess())
+        {
+            $arRowUpdated = self::getById($rowId)->fetch();
+            if (!empty($arRowUpdated) && is_array($arRowUpdated))
             {
-                return $arRow['PRODUCTS'];
+                return $arRowUpdated['PRODUCTS'];
             }
         }
         else
         {
-            return [];
+            return $arOldProducts;
         }
     }
 }
