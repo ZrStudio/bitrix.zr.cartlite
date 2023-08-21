@@ -81,9 +81,72 @@ class Order
         $this->arUserFileds = $arUserFileds;
     }
 
-    private function sendEmailEvent()
+    protected function generateProductList($arOrder)
     {
+        $strOrderList = "";
+        foreach($arOrder['PRODUCTS'] as $arProduct)
+        {
+            $strOrderList .= $arProduct["NAME"]." (".$arProduct["QUANTITY"].")";
+            $strOrderList .= "\n";
+        }
 
+        foreach(GetModuleEvents("zr.cartlite", "OnOrderEmailEventCreateTotalList", true) as $arEvent)
+        {
+            ExecuteModuleEventEx($arEvent, array($arOrder["ID"], &$eventName, &$strOrderList, $arOrder));
+        }
+
+        return $strOrderList;
+    }
+
+    private function sendEmailEvent($arOrderData)
+    {
+        $arCFileds = [
+            "ORDER_ID" => $arOrderData['ID'],
+            "ORDER_DATE" => $arOrderData['DATE_CREATE'],
+            "ORDER_USER" => $arOrderData['FUSER_ID'],
+            "PRICE" => $arOrderData['TOTAL_COST'],
+            "ORDER_LIST" => $this->generateProductList($arOrderData)
+        ];
+
+        if (!empty($arOrderData['USER_FIELDS']))
+        {
+            $arUserFields = [];
+            foreach($arOrderData['USER_FIELDS'] as $code => $value)
+            {
+                if ($code == 'USER_COMMENT')
+                {
+                    $arUserFields['COMMENT'] = $value;
+                    continue;
+                }
+                $arUserFields[$code] = $value;
+            }
+            $arCFileds = array_merge($arCFileds, $arUserFields);
+        }
+
+        $bSend = true;
+        foreach(GetModuleEvents("sale", "OnOrderEmailEventBeforeSend", true) as $arEvent)
+        {
+            if (ExecuteModuleEventEx($arEvent, Array($arOrderData["ID"], &$eventName, &$arCFileds))===false)
+            {
+                $bSend = false;
+            }
+        }
+
+        if ($bSend)
+        {
+            $res = \Bitrix\Main\Mail\Event::send([
+                "EVENT_NAME" => "ZR_CL_NEW_ORDER",
+                "LID" => "s1",
+                "C_FIELDS" => $arCFileds,
+            ]);
+
+            if ($res->isSuccess())
+            {
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 
     public function save(): \Bitrix\Main\ORM\Data\AddResult
@@ -114,7 +177,8 @@ class Order
 
         if ($res->isSuccess())
         {
-            $this->sendEmailEvent();
+            $arOrderData = OrderTable::getById($res->getId())->fetch();
+            $this->sendEmailEvent($arOrderData);
             $basket->clear();
         }
 

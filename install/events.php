@@ -57,7 +57,6 @@ if(!($dbEvent->Fetch()))
 					"LID" => $arSites,
 					"EMAIL_FROM" => "#SALE_EMAIL#",
 					"EMAIL_TO" => "#EMAIL#",
-					"BCC" => "#BCC#",
 					"SUBJECT" => GetMessage($eventName."_SUBJECT"),
 					"MESSAGE" => $message,
 					"BODY_TYPE" => "html",

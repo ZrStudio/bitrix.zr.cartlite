@@ -26,16 +26,16 @@
                 <div class="order-form__errors" data-entity="form-errors"></div>
                 <div class="order-form__fields">
                     <div class="order-form__field">
-                        <input name="USER[NAME]" placeholder="Ваше имя" id="order-from-user_name" required>
+                        <input name="USER_NAME" placeholder="Ваше имя" id="order-from-user_name" required>
                     </div>
                     <div class="order-form__field">
-                        <input name="USER[PHONE]" placeholder="Телефон" id="order-from-user_phone" data-tel-input type="tel" required>
+                        <input name="USER_PHONE" placeholder="Телефон" id="order-from-user_phone" data-tel-input type="tel" required>
                     </div>
                     <div class="order-form__field">
-                        <input name="USER[EMAIL]" placeholder="Почта" id="order-from-user_email" type="email">
+                        <input name="USER_EMAIL" placeholder="Почта" id="order-from-user_email" type="email">
                     </div>
                     <div class="order-form__field">
-                        <textarea name="USER[COMMENT]" placeholder="Комментарий" id="order-from-user_comment"></textarea>
+                        <textarea name="USER_COMMENT" placeholder="Комментарий" id="order-from-user_comment"></textarea>
                     </div>
                 </div>
 
