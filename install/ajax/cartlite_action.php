@@ -33,6 +33,11 @@ if (isset($_REQUEST["action"]))
             'QUANTITY' => $quantity,
         ];
 
+        if ($props && is_array($props))
+        {
+            $arProduct['PROPS'] = $props;
+        }
+
         if ($price && is_float($price))
         {
             $arProduct['PRICE'] = $price;

@@ -153,10 +153,10 @@ class FCart
     }
 
     /**
-     * Add product to cart. Need send third params PRODUCT_ID, QUANTITY, PRICE.
+     * Add product to cart. Need send third params PRODUCT_ID, QUANTITY, PRICE, PROPS.
      * PRICE - optional if you set in options get price from iblock prop product.
      * 
-     * @param array $arProducts array with fields PRODUCT_ID, QUANTITY, PRICE
+     * @param array $arProducts array with fields PRODUCT_ID, QUANTITY, PRICE, PROPS
      * @param bool $setQunatity is need set quantity product
      * 
      * @return \Bitrix\Main\Result result have actual product basket
@@ -164,7 +164,7 @@ class FCart
     public function add($arProducts, $setQunatity = false): \Bitrix\Main\Result
     {
         $product = new CartElement($arProducts);
-
+        
         if ($product->isValid())
         {
             $products = FCartTable::addProduct(

@@ -1,6 +1,8 @@
 <?if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true) die();
 
-$templateGeneral = GetMessage("ZR_CL_MAIL_EVENT_TEMPLATE");
+use Bitrix\Main\Localization\Loc;
+
+Loc::loadMessages(__FILE__);
 
 $dbEvent = CEventMessage::GetList('', '', Array("EVENT_NAME" => "ZR_CL_NEW_ORDER"));
 if(!($dbEvent->Fetch()))
@@ -9,14 +11,16 @@ if(!($dbEvent->Fetch()))
 	while($lang = $langs->Fetch())
 	{
 		$lid = $lang["LID"];
-		IncludeModuleLangFile(__FILE__, $lid);
+		//IncludeModuleLangFile(__FILE__, $lid);
+
+        $templateGeneral = Loc::getMessage("ZR_CL_MAIL_EVENT_TEMPLATE");
 
 		$et = new CEventType;
 		$et->Add(array(
 			"LID" => $lid,
 			"EVENT_NAME" => "ZR_CL_NEW_ORDER",
-			"NAME" => GetMessage("ZR_CL_NEW_ORDER_NAME"),
-			"DESCRIPTION" => GetMessage("ZR_CL_NEW_ORDER_DESC"),
+			"NAME" => Loc::getMessage("ZR_CL_NEW_ORDER_NAME"),
+			"DESCRIPTION" => Loc::getMessage("ZR_CL_NEW_ORDER_DESC"),
 		));
 
 		$arSites = array();
@@ -43,11 +47,11 @@ if(!($dbEvent->Fetch()))
 								"#FOOTER_SHOP#",
 							),
 						array(
-								GetMessage($eventName."_HTML_TITLE"),
-								GetMessage($eventName."_HTML_SUB_TITLE"),
-								str_replace("\n", "<br />\n", GetMessage($eventName."_HTML_TEXT")),
-								GetMessage("SMAIL_FOOTER_BR"),
-								GetMessage("SMAIL_FOOTER_SHOP"),
+								Loc::getMessage($eventName."_HTML_TITLE"),
+								Loc::getMessage($eventName."_HTML_SUB_TITLE"),
+								str_replace("\n", "<br />\n", Loc::getMessage($eventName."_HTML_TEXT")),
+								Loc::getMessage("SMAIL_FOOTER_BR"),
+								Loc::getMessage("SMAIL_FOOTER_SHOP"),
 							),
 						$template);
 
@@ -57,7 +61,7 @@ if(!($dbEvent->Fetch()))
 					"LID" => $arSites,
 					"EMAIL_FROM" => "#SALE_EMAIL#",
 					"EMAIL_TO" => "#EMAIL#",
-					"SUBJECT" => GetMessage($eventName."_SUBJECT"),
+					"SUBJECT" => Loc::getMessage($eventName."_SUBJECT"),
 					"MESSAGE" => $message,
 					"BODY_TYPE" => "html",
 				));

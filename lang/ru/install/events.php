@@ -8,7 +8,7 @@ $MESS["ZR_CL_NEW_ORDER_DESC"] = "#ORDER_ID# - код заказа
 #USER_PHONE# - Телефон заказчика
 #USER_EMAIL# - E-Mail заказчика
 #COMMENT# - Коментарии к заказу
-#ORDER_LIST# - состав заказа;
+#ORDER_LIST# - состав заказа;";
 $MESS["ZR_CL_NEW_ORDER_SUBJECT"] = "#SITE_NAME#: Новый заказ N#ORDER_ID#";
 $MESS["ZR_CL_NEW_ORDER_MESSAGE"] = "Информационное сообщение сайта #SITE_NAME#
 ------------------------------------------
@@ -230,7 +230,6 @@ $MESS["ZR_CL_NEW_ORDER_HTML_TEXT"] = "Ваш заказ номер #ORDER_ID# о
 
 Спасибо за покупку!
 ";
-
 
 $MESS["ZR_CL_MAIL_EVENT_TEMPLATE"] = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
