@@ -108,12 +108,34 @@ class zr_cartlite extends CModule
     {
         $eventManager = \Bitrix\Main\EventManager::getInstance();
         $eventManager->registerEventHandler('main', 'OnBeforeProlog', $this->MODULE_ID, 'Zrstudio\\CartLite\\FUser', 'getInstance');
+
+        global $DB;
+		include_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/".$this->MODULE_ID."/install/events.php");
+		return true;
     }
 
     public function UnInstallEvents()
     {
         $eventManager = \Bitrix\Main\EventManager::getInstance();
         $eventManager->unRegisterEventHandler('main', 'OnBeforeProlog', $this->MODULE_ID, 'Zrstudio\\CartLite\\FUser', 'getInstance');
+
+        global $DB;
+
+		$statusMes[] = "ZR_CL_NEW_ORDER";
+
+		$eventType = new CEventType;
+		$eventM = new CEventMessage;
+		foreach($statusMes as $v)
+		{
+			$eventType->Delete($v);
+			$dbEvent = CEventMessage::GetList("id", "asc", Array("EVENT_NAME" => $v));
+			while($arEvent = $dbEvent->Fetch())
+			{
+				$eventM->Delete($arEvent["ID"]);
+			}
+		}
+
+		return true;
     }
 
     public function installDB()
