@@ -63,9 +63,13 @@ class CartLite extends \CBitrixComponent
         {
             $isAllowed = $this->fuser->checkPemissionByOrder($this->arResult['ORDER_ID']);
 
-            if (!$isAllowed)
+            if ($isAllowed == 'N')
             {
                 $this->arResult['ORDER_ID'] = 0;
+            }
+            elseif ($isAllowed == 'NF')
+            {
+                $this->arResult['ORDER_ID'] = false;
             }
         }
     }

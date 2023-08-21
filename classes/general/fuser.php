@@ -122,7 +122,13 @@ class FUser
 
     public function checkPemissionByOrder($orderId)
     {
-        $fuserId = Order::getFUserIdByOrderId($orderId);
-        return $this->id == $fuserId;
+        $res = Order::getFUserIdByOrderId($orderId);
+
+        if ($res == -1)
+        {
+            return 'NF';
+        }
+
+        return $this->id == $res ? 'Y' : 'N';
     }
 }
