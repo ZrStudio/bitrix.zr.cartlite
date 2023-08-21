@@ -19,16 +19,29 @@ $areaId = [
     'CART_TOTAL_BLOCK' => 'cart_total_block_'.$mainSid,
     'CART_TOTAL_PRICE' => 'cart_total_price_'.$mainSid,
     'CART_CREATE_ORDER' => 'cart_btn_create_order_'.$mainSid,
+    'ORDER_FORM' => 'order_form_'.$mainSid,
+    'ORDER_FORM_SAVE' => 'order_form_btn_save_'.$mainSid,
 ];
 
 $this->addExternalCss($this->GetFolder().'/lib/grid.js/grid.min.css');
 $this->addExternalJs($this->GetFolder().'/lib/grid.js/grid.min.js');
 
+$this->addExternalCss($this->GetFolder().'/lib/micromodal/micromodal.min.css');
+$this->addExternalJs($this->GetFolder().'/lib/micromodal/micromodal.min.js');
+
+$this->addExternalJs($this->GetFolder().'/lib/phoneinput/phoneinput.js');
+
 $showTotalBlockTop = $arParams['TYPE_SHOW_TOTAL_CONTAINER'] == 'TOP';
 $showTotalBlockBottom = $arParams['TYPE_SHOW_TOTAL_CONTAINER'] == 'BOTTOM';
+
+$orderId = $arResult['ORDER_ID'] ?: false;
 ?>
 
-<? if (!empty($arResult['ITEMS'])): ?>
+<? if ($orderId && $orderId > 0): ?>
+    <? include ('success.php'); ?>
+<? elseif ($orderId == 0): ?>
+    <? include ('not_found_order.php'); ?>
+<? elseif (!empty($arResult['ITEMS'])): ?>
     <? if ($showTotalBlockTop):?>
         <? include ('part/checkout-block.php'); ?>
     <? endif; ?>
@@ -41,8 +54,10 @@ $showTotalBlockBottom = $arParams['TYPE_SHOW_TOTAL_CONTAINER'] == 'BOTTOM';
         <? include ('part/checkout-block.php'); ?>
     <? endif; ?>
 
+    <? include ('part/order-modal.php'); ?>
+
     <script>
-        <? $jsConfig = ['IDS' => $areaId,'PRODUCTS' => $arResult['JS_PRODUCT']]; ?>
+        <? $jsConfig = ['IDS' => $areaId,'PRODUCTS' => $arResult['JS_PRODUCT'],'AJAX_ORDER_URL'=>$componentPath.'/action.php']; ?>
         let obCartLite<?=$mainSid?> = new JCZrCartLite(<?=CUtil::PhpToJSObject($jsConfig)?>);
     </script>
 <? else: ?>

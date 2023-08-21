@@ -31,6 +31,20 @@ class Order
         $this->arUserFileds = $arUserFileds;
     }
 
+    public static function getFUserIdByOrderId($orderId): int
+    {
+        $arRowOrder = OrderTable::getById($orderId)->fetch();
+
+        if (!empty($arRowOrder) && is_array($arRowOrder))
+        {
+            return $arRowOrder['FUSER_ID'];
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
     /**
      * Set fuserId filed. Object \ZrStudio\CartLite\FUser
      * 
@@ -80,12 +94,20 @@ class Order
         {
             throw new SystemException('User cart with `'.$this->cartId.'` id not found');
         }
+
+        $basketItems = $basket->getProducts(true);
+        if (count($basketItems) == 0)
+        {
+            $res =  new \Bitrix\Main\ORM\Data\AddResult();
+            $res->addError(new \Bitrix\Main\Error('User cart is empty', '501'));
+            return $res;
+        }
        
         $res = OrderTable::add([
             'fields' => [
                 'FUSER_ID' => $this->fuserId,
                 'TOTAL_COST' => $basket->getTotalCost(),
-                'PRODUCTS' => $basket->getProducts(true),
+                'PRODUCTS' => $basketItems,
                 'USER_FIELDS' => $this->arUserFileds
             ]
         ]);

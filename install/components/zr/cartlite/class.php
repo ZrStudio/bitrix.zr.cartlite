@@ -16,6 +16,8 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true)
 
 class CartLite extends \CBitrixComponent 
 {
+    private FUser $fuser;
+
     public function onIncludeComponentLang()
     {
         Loc::loadLanguageFile(__FILE__);
@@ -24,6 +26,8 @@ class CartLite extends \CBitrixComponent
     public function loadBasketData() 
     {
         $fuser = $this->getFuser();
+        $this->fuser = $fuser;
+        
         $basket = $this->getBasketFUser($fuser);
         if (!is_a($basket, 'ZrStudio\CartLite\FCart')) return;
 
@@ -43,6 +47,29 @@ class CartLite extends \CBitrixComponent
         return $fuser->getFUserBasket();
     }
 
+    private function getOrderId()
+    {
+        $orderId = $_REQUEST['ORDER_ID'] ? intval($_REQUEST['ORDER_ID']) : false;
+
+        if ($orderId > 0)
+        {
+            $this->arResult['ORDER_ID'] = $orderId;
+        }
+    }
+
+    private function checkPremissionUserOrder()
+    {
+        if ($this->arResult['ORDER_ID'] > 0)
+        {
+            $isAllowed = $this->fuser->checkPemissionByOrder($this->arResult['ORDER_ID']);
+
+            if (!$isAllowed)
+            {
+                $this->arResult['ORDER_ID'] = 0;
+            }
+        }
+    }
+    
     /**
      * Get f user object
      *
@@ -56,6 +83,8 @@ class CartLite extends \CBitrixComponent
     public function executeComponent()
 	{
         $this->loadBasketData();
+        $this->getOrderId();
+        $this->checkPremissionUserOrder();
         $this->includeComponentTemplate();
 	}
 }

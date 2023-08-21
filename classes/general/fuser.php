@@ -119,4 +119,10 @@ class FUser
         $basket = FCart::getUserBasketByFUserId($this->id);
         return $basket;
     }
+
+    public function checkPemissionByOrder($orderId)
+    {
+        $fuserId = Order::getFUserIdByOrderId($orderId);
+        return $this->id == $fuserId;
+    }
 }

@@ -11,16 +11,21 @@
         this.obCart = null;
         this.obCartTable = null;
         this.obCartTotalPrice = null;
-        this.obBtnCreateOrder = null;
+        this.obBtnShowModal = null;
+        this.obOrderForm = null;
+        this.obOrderFormErrors = null;
 
         this.obGridJs = null;
 
         this.currencySymbol = '₽';
 
+        this.ajaxOrderUrl = params.AJAX_ORDER_URL;
         this.ajaxItemUrl = '/ajax/cartlite_action.php';
         this.ajaxCartUrl = '/ajax/cartlite_get_actual_cart.php';
 
         this.init();
+
+        console.log(this);
     }
 
     window.JCZrCartLite.prototype = {
@@ -43,9 +48,21 @@
 
             if (this.areaId.CART_CREATE_ORDER)
             {
-                this.obBtnCreateOrder = document.getElementById(this.areaId.CART_CREATE_ORDER);
+                this.obBtnShowModal = document.getElementById(this.areaId.CART_CREATE_ORDER);
             }
 
+            if (this.areaId.ORDER_FORM)
+            {
+                this.obOrderForm = document.getElementById(this.areaId.ORDER_FORM);
+                BX.bind(this.obOrderForm, 'submit', BX.delegate(this.sendOrderForm, this));
+            }
+
+            if (this.obOrderForm)
+            {
+                this.obOrderFormErrors = this.obOrderForm.querySelector('[data-entity="form-errors"]');
+            }
+
+            MicroModal.init();
             this.renderTableData(this.products);
         },
 
@@ -213,6 +230,20 @@
             this.obCartTable.style.minHeight = height + 'px'; 
         },
 
+        sendOrderForm: function(e)
+        {
+            e.preventDefault();
+            const userFields = Object.fromEntries(new FormData(e.target).entries());
+
+            BX.ajax({
+				method: 'POST',
+				dataType: 'json',
+				url: this.ajaxOrderUrl,
+                data: { USER_ORDER_PARAMS: userFields, LOCATION: window.location.href },
+				onsuccess: BX.proxy(this.afterCreateOrder, this)
+			});
+        },
+
         sendCartAction: function(data)
         {
             this.setTableHeight();
@@ -249,6 +280,40 @@
                         }
                     }, this),
                 });
+            }
+        },
+
+        clearFormErrors: function()
+        {
+            this.obOrderFormErrors.innerHTML = '';
+            this.obOrderFormErrors.classList.remove('show');
+        },
+
+        showErrorsForm: function(errors)
+        {
+            this.obOrderFormErrors.innerHTML = errors.join('<br/>');
+            this.obOrderFormErrors.classList.add('show');
+        },
+
+        afterCreateOrder: function(arResult)
+        {
+            this.clearFormErrors();
+            if (arResult.STATUS == 'OK')
+            {
+                let orderId = arResult.DATA.ORDER_ID;
+
+                if (arResult.DATA.REDIRECT)
+                {
+                    window.location.href = arResult.DATA.REDIRECT;
+                }
+                else if (orderId > 0)
+                {
+                    window.location.href = window.location.href + '?ORDER_ID=' + orderId;
+                }
+            }
+            else
+            {
+                this.showErrorsForm(arResult.MESSAGE);
             }
         }
     }

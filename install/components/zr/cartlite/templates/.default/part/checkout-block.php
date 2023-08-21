@@ -33,7 +33,7 @@
             <div class="basket-checkout-block basket-checkout-block-btns">
                 <div class="basket-checkout-block-btns-wrap">
                     <div class="basket-checkout-block basket-checkout-block-btn">
-                        <button class="btn btn-primary" id="<?=$areaId['CART_CREATE_ORDER']?>">
+                        <button class="btn btn-primary" id="<?=$areaId['CART_CREATE_ORDER']?>" data-micromodal-trigger="create-order-modal">
                             Оформить заказ 
                         </button>
                     </div>

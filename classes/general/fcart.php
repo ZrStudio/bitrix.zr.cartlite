@@ -42,7 +42,7 @@ class FCart
         return self::_getSelectedBasket($baskets, $cartId);
     }
 
-    private static function _getSelectedBasket($baskets, $basketId)
+    private static function _getSelectedBasket($baskets, $basketId): FCart
     {
         $basketSelectId = array_key_first($baskets);
         if ($basketId > 0)
