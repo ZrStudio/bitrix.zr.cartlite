@@ -7,9 +7,7 @@
 
 namespace ZrStudio\CartLite;
 
-use Bitrix\Main,
-    Bitrix\Sale\Internals,
-    Bitrix\Main\Localization\Loc,
+use Bitrix\Main\Localization\Loc,
     ZrStudio\CartLite\FCartTable,
     ZrStudio\CartLite\CartElement,
     Bitrix\Main\SystemException;
@@ -39,26 +37,23 @@ class FCart
         $cartId = intval($cartId) ?: 0;
         if ($ID <= 0) return null;
     
-        $cartUserCollection = FCartTable::getBasketByFUserId($fuserId)->fetchAll();
-        if (count($cartUserCollection) > 0)
+        $arFUserBaskets = FCartTable::getBasketByFUserId($fuserId)->fetchAll();
+        $baskets = self::_initInstanceByCartResult($arFUserBaskets);
+        return self::_getSelectedBasket($baskets, $cartId);
+    }
+
+    private static function _getSelectedBasket($baskets, $basketId)
+    {
+        $basketSelectId = array_key_first($baskets);
+        if ($basketId > 0)
         {
-            $baskets = self::_initInstanceByCartResult($cartUserCollection);
-            if ($cartId > 0)
-            {
-                return $baskets[$cartId];
-            }
-            return $baskets[array_key_first($baskets)];
+            $basketSelectId = $basketId;
         }
-        else
-        {
-            $arNewBasketCollection = FCartTable::createNewBasketByFUserId($fuserId)->fetchAll();
-            $baskets = self::_initInstanceByCartResult($arNewBasketCollection);
-            if ($cartId > 0)
-            {
-                return $baskets[$cartId];
-            }
-            return $baskets[array_key_first($baskets)];
-        }
+        
+        // todo: multi cart
+        $basket = $baskets[$basketSelectId];
+        $basket->calc();
+        return $basket;
     }
 
     private static function _initInstanceByCartResult($cartUserCollection)
@@ -66,7 +61,7 @@ class FCart
         $arBasketInstance = [];
         foreach ($cartUserCollection as $arBasketObject) 
         {
-            $arBasketInstance[] = new self(
+            $arBasketInstance[$arBasketObject['ID']] = new self(
                 $arBasketObject['ID'],
                 $arBasketObject['USER_ID'],
                 $arBasketObject['PRODUCTS'],
@@ -140,6 +135,23 @@ class FCart
         throw new SystemException('Cart with `'.$this->cartId.'` id not found');
     }
 
+    protected function _getProductOnlyOrderFields(): array
+    {
+        $arProducts = [];
+        foreach($this->products as $arProduct)
+        {
+            $product = new CartElement($arProduct);
+
+            $arProducts[$product->getId()] = [
+                'ID' => $product->getId(),
+                'NAME' => $product->getName(),
+                'PRICE' => $product->getPrice(),
+                'QUANTITY' => $product->getQuantity()
+            ];
+        }
+        return $arProducts;
+    }
+
     /**
      * Add product to cart. Need send third params PRODUCT_ID, QUANTITY, PRICE.
      * PRICE - optional if you set in options get price from iblock prop product.
@@ -182,7 +194,6 @@ class FCart
         $this->_updateCartData(false);
         return $this->_createResult($this->products);
     }
-
 
     /**
      * Get cart id
@@ -229,8 +240,12 @@ class FCart
      * 
      * @return array products
      */
-    public function getProducts()
+    public function getProducts(bool $onlyOrderField = false)
     {
+        if ($onlyOrderField)
+        {
+            return $this->_getProductOnlyOrderFields();
+        }
         return $this->products;
     }
 
@@ -248,5 +263,18 @@ class FCart
     {
         $this->_updateCartData(true);
         return $this;
+    }
+
+    /**
+     * Clear fuser basket. Delete only 
+     */
+    public function clear(): bool
+    {
+        $res = FCartTable::clearCart($this->cartId);
+        if (is_array($res))
+        {
+            return count($res);
+        }
+        return false;
     }
 }

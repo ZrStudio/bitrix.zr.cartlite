@@ -15,8 +15,29 @@ try
         'TOTAL_COST' => $curBasket->getTotalCost(),
         'ITEM_COUNT' => $curBasket->getProductsCount(),
         'ITEM_QUANTITY' => $curBasket->getProductsQuantity(),
-        'ITEMS' => $curBasket->getProducts()
     ];
+
+    if ($_REQUEST['mode'] = 'add_js_products')
+    {
+        $arData['JS_ITEMS'] = [];
+        $arData['ITEMS'] = $curBasket->getProductsObjects();
+
+        if (!empty($arData['ITEMS']))
+        {
+            $arJsProducts = [];
+            foreach($arData['ITEMS'] as $product)
+            {
+                /** @var \ZrStudio\CartLite\CartElement $_product */
+                $_product = $product;
+                $arJsProducts[] = $_product->getProductJs(['delete']);
+            }
+            $arData['JS_ITEMS'] = $arJsProducts;
+        }
+    }
+    else
+    {
+        $arData['ITEMS'] = $curBasket->getProducts();
+    }
     
     $arResult = ['STATUS' => 'OK', 'DATA' => $arData];
     echo json_encode($arResult);

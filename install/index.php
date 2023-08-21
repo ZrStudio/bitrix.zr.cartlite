@@ -22,13 +22,15 @@ class zr_cartlite extends CModule
 
     protected array $files = [
         '/ajax/cartlite_action.php' => '/ajax/cartlite_action.php',
+        '/ajax/cartlite_get_actual_cart.php' => '/ajax/cartlite_get_actual_cart.php',
         '/components/zr/cartlite/' => '/bitrix/components/zr/cartlite/',
         '/components/zr/shortcart/' => '/bitrix/components/zr/shortcart/',
     ];
 
     protected array $tables = [
         'ZrStudio\CartLite\FCUserTable',
-        'ZrStudio\CartLite\FCartTable'
+        'ZrStudio\CartLite\FCartTable',
+        'ZrStudio\CartLite\OrderTable'
     ];
 
     protected array $fixedMySql = [
@@ -203,5 +205,6 @@ class zr_cartlite extends CModule
     {
         require_once __DIR__ . '/../lib/fcuser.php';
         require_once __DIR__ . '/../lib/fcart.php';
+        require_once __DIR__ . '/../lib/order.php';
     }
 }

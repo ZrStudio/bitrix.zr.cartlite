@@ -7,11 +7,10 @@
 
 namespace ZrStudio\CartLite;
 
-use Bitrix\Main;
-use Bitrix\Sale\Internals;
-use Bitrix\Main\Localization\Loc;
-use ZrStudio\CartLite\FCUserTable;
-use ZrStudio\CartLite\FCart;
+use Bitrix\Main,
+    Bitrix\Main\Localization\Loc,
+    ZrStudio\CartLite\FCUserTable,
+    ZrStudio\CartLite\FCart;
 
 Loc::loadMessages(__FILE__);
 
@@ -118,10 +117,6 @@ class FUser
     public function getFUserBasket()
     {
         $basket = FCart::getUserBasketByFUserId($this->id);
-        if ($basket)
-        {
-            $basket->calc();
-        }
         return $basket;
     }
 }

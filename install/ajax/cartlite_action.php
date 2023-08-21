@@ -38,7 +38,13 @@ if (isset($_REQUEST["action"]))
             $arProduct['PRICE'] = $price;
         }
 
-        $res = $curBasket->add($arProduct);
+        $setQuantity = false;
+        if ($_REQUEST["mode"] == 'set_quantity')
+        {
+            $setQuantity = true;
+        }
+
+        $res = $curBasket->add($arProduct, $setQuantity);
 
         if ($res->isSuccess())
         {
@@ -56,10 +62,27 @@ if (isset($_REQUEST["action"]))
             echo json_encode($arResult);
             die();
         }
-    } 
+    }
     elseif ($_REQUEST["action"] == 'delete_item')
     {
+        $res = $curBasket->delete($itemId);
 
+        if ($res->isSuccess())
+        {
+            $arResult['STATUS'] = 'OK';
+            $arResult['MESSAGE'] = 'Item with `'.$itemId.'` product - deleted from cart';
+            $arResult['ERROR'] = '';
+            echo json_encode($arResult);
+            die();
+        }
+        else
+        {
+            $arResult['STATUS'] = 'ERROR';
+            $arResult['MESSAGE'] = 'Item with `'.$itemId.'` product - not deleted from cart';
+            $arResult['ERROR'] = $res->getErrors();
+            echo json_encode($arResult);
+            die();
+        }
     }
 }
 else

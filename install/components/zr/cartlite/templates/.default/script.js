@@ -10,8 +10,12 @@
 
         this.obCart = null;
         this.obCartTable = null;
+        this.obCartTotalPrice = null;
+        this.obBtnCreateOrder = null;
 
         this.obGridJs = null;
+
+        this.currencySymbol = '₽';
 
         this.ajaxItemUrl = '/ajax/cartlite_action.php';
         this.ajaxCartUrl = '/ajax/cartlite_get_actual_cart.php';
@@ -30,6 +34,16 @@
             if (this.areaId.CART_TABLE)
             {
                 this.obCartTable = document.getElementById(this.areaId.CART_TABLE);
+            }
+
+            if (this.areaId.CART_TOTAL_PRICE)
+            {
+                this.obCartTotalPrice = document.getElementById(this.areaId.CART_TOTAL_PRICE);
+            }
+
+            if (this.areaId.CART_CREATE_ORDER)
+            {
+                this.obBtnCreateOrder = document.getElementById(this.areaId.CART_CREATE_ORDER);
             }
 
             this.renderTableData(this.products);
@@ -99,6 +113,7 @@
                 },
                 {
                     name: 'Название',
+                    width: '30%',
                     formatter: (_, row) => gridjs.html(`<a href='${row.cells[1].data}'>${row.cells[3].data}</a>`),
                 },
                 {
@@ -192,8 +207,15 @@
             });
         },
 
+        setTableHeight: function()
+        {
+            let height = this.obCartTable.getBoundingClientRect()['height'];
+            this.obCartTable.style.minHeight = height + 'px'; 
+        },
+
         sendCartAction: function(data)
         {
+            this.setTableHeight();
             BX.ajax({
 				method: 'POST',
 				dataType: 'json',
@@ -219,6 +241,11 @@
                         if (basketResult.STATUS == 'OK')
                         {
                             this.renderTableData(basketResult.DATA.JS_ITEMS);
+
+                            if (basketResult.DATA.TOTAL_COST)
+                            {
+                                this.obCartTotalPrice.innerText = basketResult.DATA.TOTAL_COST + ' ' + this.currencySymbol;
+                            }
                         }
                     }, this),
                 });

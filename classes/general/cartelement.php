@@ -177,6 +177,11 @@ class CartElement
         return $this->quantity;
     }
 
+    public function getName()
+    {
+        return $this->name;
+    }
+
     public function getProductJs($actions = [])
     {
         return [

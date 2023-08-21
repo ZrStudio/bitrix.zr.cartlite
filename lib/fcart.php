@@ -20,6 +20,7 @@ Loc::loadMessages(__FILE__);
 
 class FCartTable extends Entity\DataManager
 {
+
     public static function getTableName()
     {
         return 'zr_cart_lite_cart';
@@ -36,7 +37,7 @@ class FCartTable extends Entity\DataManager
             'USER_ID' => new IntegerField('USER_ID'),
             (new Reference(
                 'USER',
-                \ZrStudio\StopList\FCUserTable::class,
+                \ZrStudio\CartLite\FCUserTable::class,
                 Join::on('this.USER_ID', 'ref.ID')
             ))->configureJoinType('left'),
             'DATE_CREATE' => new DatetimeField('DATE_CREATE', array(
@@ -60,11 +61,21 @@ class FCartTable extends Entity\DataManager
         {
             $filter['ID'] = $basketId;
         }
-        return self::getList(array(
+
+        $rsBaskets = self::getList(array(
             'select' => array('*'),
             'filter' => $filter,
             'limit' => 10
         ));
+
+        if ($rsBaskets->getSelectedRowsCount() > 0)
+        {
+            return $rsBaskets;
+        }
+        else 
+        {
+            return self::createNewBasketByFUserId($fuserId, []);
+        }
     }
 
     public static function createNewBasketByFUserId($fuserId, $products = [])
@@ -138,7 +149,7 @@ class FCartTable extends Entity\DataManager
         return [];
     }
 
-    private static function _setProducts($rowId, $arProducts, $arOldProducts)
+    private static function _setProducts($rowId, $arProducts, $arOldProducts = [])
     {
         $res = self::update($rowId, [
             'TIMESTAMP_X' => new Main\Type\DateTime(),
@@ -157,5 +168,13 @@ class FCartTable extends Entity\DataManager
         {
             return $arOldProducts;
         }
+    }
+
+    /**
+     * Clear user cart
+     */
+    public static function clearCart($rowId)
+    {
+        return self::_setProducts($rowId, []);
     }
 }
