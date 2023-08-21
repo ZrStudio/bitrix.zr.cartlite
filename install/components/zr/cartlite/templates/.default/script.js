@@ -24,8 +24,6 @@
         this.ajaxCartUrl = '/ajax/cartlite_get_actual_cart.php';
 
         this.init();
-
-        console.log(this);
     }
 
     window.JCZrCartLite.prototype = {
@@ -82,18 +80,37 @@
             });
         },
 
+
         quantityUp: function(obQuantity, productId)
         {
-            //obQuantity.value = Number(obQuantity.value) + 1;
-            this.addItem(productId, 1);
+            let stockAllowed = Number(obQuantity.max);
+            let quantity = Number(obQuantity.value);
+
+            if (quantity < stockAllowed)
+            {
+                this.addItem(productId, 1);
+            }
+            else
+            {
+                this.setItem(productId, stockAllowed);
+            }
         },
 
         quantityDown: function(obQuantity, productId)
         {
+            let stockAllowed = Number(obQuantity.max);
+            let quantity = Number(obQuantity.value);
+
             if (Number(obQuantity.value) > 0)
             {
-                //obQuantity.value = Number(obQuantity.value) - 1;
-                this.addItem(productId, -1);
+                if (quantity <= stockAllowed)
+                {
+                    this.addItem(productId, -1);
+                }
+                else
+                {
+                    this.setItem(productId, stockAllowed);
+                }
             }
             else
             {
@@ -103,7 +120,14 @@
 
         quantitySet: function(e, productId)
         {
-            let quantity = e.target.value;
+            let stockAllowed = Number(e.target.value.max);
+            let quantity = Number(e.target.value);
+
+            if (quantity >= stockAllowed)
+            {
+                quantity = stockAllowed;
+            }
+
             this.setItem(productId, quantity);
         },
 
@@ -119,8 +143,12 @@
                     hidden: true
                 },
                 {
+                    name: 'product_stock_quantity',
+                    hidden: true
+                },
+                {
                     name: 'Изображение',
-                    formatter: (_, row) => gridjs.html(`<img src='${row.cells[2].data}'/>`),
+                    formatter: (_, row) => gridjs.html(`<img src='${row.cells[3].data}'/>`),
                     attributes: (cell, row, column)  => {
                         return {
                             onclick: () => window.location.assign(row.cells[1].data),
@@ -131,27 +159,27 @@
                 {
                     name: 'Название',
                     width: '30%',
-                    formatter: (_, row) => gridjs.html(`<a href='${row.cells[1].data}'>${row.cells[3].data}</a>`),
+                    formatter: (_, row) => gridjs.html(`<a href='${row.cells[1].data}'>${row.cells[4].data}</a>`),
                 },
                 {
                     name: 'Цена',
-                    formatter: (_, row) => gridjs.html(`${row.cells[4].data} ₽`),
+                    formatter: (_, row) => gridjs.html(`${row.cells[5].data} ₽`),
                 },
                 {
                     name: 'Колличество',
-                    formatter: (cell) => gridjs.html(this._getQuantityHtml(cell)),
+                    formatter: (cell, row) => gridjs.html(this._getQuantityHtml(cell, row.cells[2].data)),
                     attributes: (_, row) => {
                         if (row)
                         {
                             return {
-                                'data-pq-container': row.cells[0].data
+                                'data-pq-container': row.cells[0].data,
                             }
                         }
                     }
                 },
                 {
                     name: 'Общая цена',
-                    formatter: (_, row) => gridjs.html(`${row.cells[6].data} ₽`),
+                    formatter: (_, row) => gridjs.html(`${row.cells[7].data} ₽`),
                 },
                 {
                     name: '',
@@ -165,11 +193,16 @@
             ]
         },
 
-        _getQuantityHtml: function(quantity)
+        _getQuantityHtml: function(quantity, stock)
         {
+            stock = Number(stock);
+            if (stock <= 0)
+            {
+                stock = '';
+            }
             return `<div class="cart-quantity">
                 <span class="cart-quantity__minus" data-quantity-action="minus">-</span>
-                <input class="cart-quantity__field" type="number" value="${quantity}" data-quantity-field>
+                <input class="cart-quantity__field" type="number" value="${quantity}" ${stock ? 'max="' + stock +'"' : ''} data-quantity-field>
                 <span class="cart-quantity__plus" data-quantity-action="plus">+</span>
             </div>`;
         },

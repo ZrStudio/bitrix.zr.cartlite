@@ -45,6 +45,7 @@ while ($arSite = $rsSites->Fetch())
 {
     $isActiveModule = \Bitrix\Main\Config\Option::get($module_id, 'module_active_'. $arSite['LID'], '', $arSite['LID']);
     $getPriceFromProp = \Bitrix\Main\Config\Option::get($module_id, 'get_price_product_from_props_'. $arSite['LID'], '', $arSite['LID']);
+    $getStockQuantityFromProp = \Bitrix\Main\Config\Option::get($module_id, 'get_stock_quantity_product_from_props_'. $arSite['LID'], '', $arSite['LID']);
     $catalogIblocsSelect = \Bitrix\Main\Config\Option::get($module_id, 'catalog_iblocks_'. $arSite['LID'], '', $arSite['LID']);
 
     $arCatalogIblock = [];
@@ -75,10 +76,16 @@ while ($arSite = $rsSites->Fetch())
                 Loc::getMessage($prefix .'GET_PRICE_FROM_PROP'),
                 $zr_cartlite_default_option['get_price_product_from_props_s1'],
                 ['checkbox']
+            ],
+            [
+                'get_stock_quantity_product_from_props_'. $arSite['LID'],
+                Loc::getMessage($prefix .'GET_STOCK_QUANTITY_FROM_PROP'),
+                $zr_cartlite_default_option['get_stock_quantity_product_from_props_s1'],
+                ['checkbox']
             ]
         ]);
 
-        if ($getPriceFromProp == 'Y')
+        if ($getPriceFromProp == 'Y' || $getStockQuantityFromProp == 'Y')
         {
             $arOptions = array_merge($arOptions, [
                 Loc::getMessage($prefix .'CATALOG_IBLOCK_PROPS_TITLE'),
@@ -92,25 +99,52 @@ while ($arSite = $rsSites->Fetch())
     
             if (!empty($arCatalogIblock))
             {
-                foreach($arCatalogIblock as $catalogId) 
+                if ($getPriceFromProp == 'Y')
                 {
-                    $rsProps = CIBlockProperty::GetList(Array("sort"=>"asc", "name"=>"asc"), Array("ACTIVE"=>"Y", "IBLOCK_ID"=>$catalogId));
-    
-                    $arProps = [0 => ''];
-                    while ($arProp = $rsProps->GetNext())
+                    foreach($arCatalogIblock as $catalogId) 
                     {
-                        $arProps[$arProp["CODE"]] = "[".$arProp['ID']."] ".$arProp['NAME'];
-                    }
-    
-                    $arOptions = array_merge($arOptions,
-                    [
+                        $rsProps = CIBlockProperty::GetList(Array("sort"=>"asc", "name"=>"asc"), Array("ACTIVE"=>"Y", "IBLOCK_ID"=>$catalogId));
+        
+                        $arProps = [0 => ''];
+                        while ($arProp = $rsProps->GetNext())
+                        {
+                            $arProps[$arProp["CODE"]] = "[".$arProp['ID']."] ".$arProp['NAME'];
+                        }
+        
+                        $arOptions = array_merge($arOptions,
                         [
-                            'catalog_'. $catalogId.'_iblock_props_'. $arSite['LID'],
-                            Loc::getMessage($prefix .'CATALOG_IBLOCK_PROPS')." [".$catalogId."]",
-                            false,
-                            ['selectbox', $arProps]
-                        ]
-                    ]);
+                            [
+                                'catalog_'. $catalogId.'_iblock_props_'. $arSite['LID'],
+                                Loc::getMessage($prefix .'CATALOG_IBLOCK_PROPS')." [".$catalogId."]",
+                                false,
+                                ['selectbox', $arProps]
+                            ]
+                        ]);
+                    }
+                }
+
+                if ($getStockQuantityFromProp == 'Y')
+                {
+                    foreach($arCatalogIblock as $catalogId) 
+                    {
+                        $rsProps = CIBlockProperty::GetList(Array("sort"=>"asc", "name"=>"asc"), Array("ACTIVE"=>"Y", "IBLOCK_ID"=>$catalogId));
+        
+                        $arProps = [0 => ''];
+                        while ($arProp = $rsProps->GetNext())
+                        {
+                            $arProps[$arProp["CODE"]] = "[".$arProp['ID']."] ".$arProp['NAME'];
+                        }
+        
+                        $arOptions = array_merge($arOptions,
+                        [
+                            [
+                                'catalog_'. $catalogId.'_iblock_stock_quantity_props_'. $arSite['LID'],
+                                Loc::getMessage($prefix .'CATALOG_STOCK_QUANTITY_IBLOCK_PROPS')." [".$catalogId."]",
+                                false,
+                                ['selectbox', $arProps]
+                            ]
+                        ]);
+                    }
                 }
             }
         }

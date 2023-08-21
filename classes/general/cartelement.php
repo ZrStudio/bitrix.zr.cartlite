@@ -27,6 +27,7 @@ class CartElement
     private string $detailUrl = '';
     private string $previewImageSrc = '';
     private string $detailImageSrc = '';
+    private $stockQunatity = false;
     private float $price = 0;
     private int $quantity;
     private array $props;
@@ -42,6 +43,7 @@ class CartElement
 
         $this->_loadProductInfo($arProductFields['PRODUCT_ID']);
         $this->_setProductPrice($arProductFields['PRICE']);
+        $this->_setProductStockQuantity();
         $this->_initType($arProductFields['TYPE']);
         $this->_initProps($arProductFields['PROPS']);
     }
@@ -98,7 +100,6 @@ class CartElement
             $this->productIblockId = $arElement['IBLOCK_ID'];
 
             $this->detailUrl = $arElement['DETAIL_PAGE_URL'];
-
         }
         else
         {
@@ -108,8 +109,7 @@ class CartElement
 
     private function _setProductPrice($customPrice)
     {
-        $sideLid = SITE_ID == 'ru' ? 's1' : SITE_ID;
-        $isGetPriceFromProp = \Bitrix\Main\Config\Option::get('zr.cartlite', 'get_price_product_from_props_'. $sideLid, '', $sideLid);
+        $isGetPriceFromProp = $this->_getOptionByCode('get_price_product_from_props');
         if ($isGetPriceFromProp == 'N')
         {
             $this->price = floatval($customPrice);
@@ -118,36 +118,67 @@ class CartElement
 
         if ($this->productIblockId && $this->productIblockId > 0)
         {
-            $propCodeByPrice = \Bitrix\Main\Config\Option::get(
-                'zr.cartlite', 
-                'catalog_'. $this->productIblockId .'_iblock_props_'. $sideLid, 
-                '', 
-                $sideLid
-            );
+            $propCodeByPrice = $this->_getOptionByCode('catalog_'. $this->productIblockId .'_iblock_props');
+            $value = $this->_getPropValueByCode($propCodeByPrice);
 
-            if (!empty($propCodeByPrice) && is_string($propCodeByPrice))
+            if ($value)
             {
-                if ($this->isLoadIblockModule())
-                {
-                    
-                    $arPriceProp = \CIBlockElement::GetProperty(
-                        $this->productIblockId, 
-                        $this->productId,
-                        "sort",
-                        "asc", 
-                        array('CODE' => $propCodeByPrice)
-                    )->Fetch();
-
-                    if (!empty($arPriceProp))
-                    {
-                        $this->price = floatval($arPriceProp['VALUE']);
-                        return;
-                    }
-                }
+                $this->price =floatval($value);
+                return;
             }
         }
 
         $this->price = floatval($customPrice);
+    }
+
+    private function _setProductStockQuantity()
+    {
+        $isGetStockQuantityFromProp = $this->_getOptionByCode('get_stock_quantity_product_from_props');
+        if ($isGetStockQuantityFromProp == 'N')
+        {
+            return;
+        }
+
+        if ($this->productIblockId && $this->productIblockId > 0)
+        {
+            $propCode = $this->_getOptionByCode('catalog_'. $this->productIblockId .'_iblock_stock_quantity_props');
+            $value = $this->_getPropValueByCode($propCode);
+
+            if ($value)
+            {
+                $this->stockQunatity = intval($value);
+            }
+        }
+    }
+
+    private function _getOptionByCode($code)
+    {
+        $sideLid = SITE_ID == 'ru' ? 's1' : SITE_ID;
+        return \Bitrix\Main\Config\Option::get('zr.cartlite', $code . '_' . $sideLid, '', $sideLid);
+    }
+
+    private function _getPropValueByCode($code)
+    {
+        if (!empty($code) && is_string($code))
+        {
+            if ($this->isLoadIblockModule())
+            {
+                $arPriceProp = \CIBlockElement::GetProperty(
+                    $this->productIblockId, 
+                    $this->productId,
+                    "sort",
+                    "asc", 
+                    array('CODE' => $code)
+                )->Fetch();
+
+                if (!empty($arPriceProp))
+                {
+                    return $arPriceProp['VALUE'];
+                }
+            }
+        }
+
+        return '';
     }
 
     private function isLoadIblockModule()
@@ -174,6 +205,16 @@ class CartElement
 
     public function getQuantity()
     {
+        if ($this->quantity < 0) 
+        {
+            $this->quantity = 0;
+        }
+
+        if ($this->stockQunatity && $this->quantity >= $this->stockQunatity)
+        {
+            $this->quantity = $this->stockQunatity;
+        }
+
         return $this->quantity;
     }
 
@@ -187,10 +228,11 @@ class CartElement
         return [
             $this->productId,
             $this->detailUrl,
+            $this->stockQunatity,
             $this->previewImageSrc,
             $this->name,
             $this->price,
-            $this->quantity,
+            $this->getQuantity(),
             $this->getProductTotalCost(),
             $actions
         ];

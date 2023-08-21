@@ -39,8 +39,6 @@ $orderId = $arResult['ORDER_ID'] ?: false;
 
 <? if ($orderId && $orderId > 0): ?>
     <? include ('success.php'); ?>
-<? elseif ($orderId == 0): ?>
-    <? include ('not_found_order.php'); ?>
 <? elseif (!empty($arResult['ITEMS'])): ?>
     <? if ($showTotalBlockTop):?>
         <? include ('part/checkout-block.php'); ?>
@@ -60,6 +58,8 @@ $orderId = $arResult['ORDER_ID'] ?: false;
         <? $jsConfig = ['IDS' => $areaId,'PRODUCTS' => $arResult['JS_PRODUCT'],'AJAX_ORDER_URL'=>$componentPath.'/action.php']; ?>
         let obCartLite<?=$mainSid?> = new JCZrCartLite(<?=CUtil::PhpToJSObject($jsConfig)?>);
     </script>
+<? elseif ($orderId === 0): ?>
+    <? include ('not_found_order.php'); ?>
 <? else: ?>
     <? include ('empty.php'); ?>
 <? endif; ?>
