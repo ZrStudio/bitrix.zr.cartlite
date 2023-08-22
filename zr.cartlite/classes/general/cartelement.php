@@ -230,7 +230,7 @@ class CartElement
             $this->detailUrl,
             $this->stockQunatity,
             $this->previewImageSrc,
-            $this->name,
+            [$this->name, $this->props],
             $this->price,
             $this->getQuantity(),
             $this->getProductTotalCost(),

@@ -159,7 +159,7 @@
                 {
                     name: 'Название',
                     width: '30%',
-                    formatter: (_, row) => gridjs.html(`<a href='${row.cells[1].data}'>${row.cells[4].data}</a>`),
+                    formatter: (cell, row) => gridjs.html(this._getNameHtml(row.cells[1].data, cell[0],  cell[1])),
                 },
                 {
                     name: 'Цена',
@@ -191,6 +191,20 @@
                       }
                 }
             ]
+        },
+
+        _getNameHtml(link, name, props)
+        {
+            let strProps = '';
+            if (Object.keys(props).length > 0)
+            {
+                strProps += '<div class="props-container">';
+                Object.entries(props).forEach((item) => {
+                    strProps += `<div class="prop"><div class="name">${item[0]}</div><div class="value">${item[1]}</div></div>`;
+                });
+                strProps += '</div>';
+            }
+            return `<a href='${link}'>${name}</a>${strProps}`;
         },
 
         _getQuantityHtml: function(quantity, stock)
